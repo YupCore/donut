@@ -70,6 +70,16 @@ freely, subject to the following restrictions:
 #pragma comment(lib, "shcore.lib")
 #endif
 
+#if defined(_WINDOWS) && DONUT_FORCE_DISCRETE_GPU
+extern "C"
+{
+    // Declaring this symbol makes the OS run the app on the discrete GPU on NVIDIA Optimus laptops by default
+    __declspec(dllexport) DWORD NvOptimusEnablement = 1;
+    // Same as above, for laptops with AMD GPUs
+    __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 using namespace donut::app;
 
 // The joystick interface in glfw is not per-window like the keys, mouse, etc. The joystick callbacks
@@ -217,10 +227,20 @@ bool DeviceManager::CreateInstance(const InstanceParameters& params)
     if (m_InstanceCreated)
         return true;
 
+
     static_cast<InstanceParameters&>(m_DeviceParams) = params;
 
     if (!params.headlessDevice)
     {
+#ifdef _WINDOWS
+        if (!params.enablePerMonitorDPI)
+        {
+            // glfwInit enables the maximum supported level of DPI awareness unconditionally.
+            // If the app doesn't need it, we have to call this function before glfwInit to override that behavior.
+            SetProcessDpiAwareness(PROCESS_DPI_UNAWARE);
+        }
+#endif
+
         if (!glfwInit())
             return false;
     }
@@ -249,17 +269,6 @@ bool DeviceManager::CreateHeadlessDevice(const DeviceCreationParameters& params)
 
 bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameters& params, const char *windowTitle)
 {
-#ifdef _WINDOWS
-    if (params.enablePerMonitorDPI)
-    {
-        // this needs to happen before glfwInit in order to override GLFW behavior
-        SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-    }
-    else {
-        SetProcessDpiAwareness(PROCESS_DPI_UNAWARE);
-    }
-#endif
-
     m_DeviceParams = params;
     m_DeviceParams.headlessDevice = false;
     m_RequestedVSync = params.vsyncEnabled;
@@ -291,9 +300,10 @@ bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceCreationParameter
 
     glfwWindowHint(GLFW_SAMPLES, params.swapChainSampleCount);
     glfwWindowHint(GLFW_REFRESH_RATE, params.refreshRate);
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, params.resizeWindowWithDisplayScale);
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
+    
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);   // Ignored for fullscreen
 
     m_Window = glfwCreateWindow(params.backBufferWidth, params.backBufferHeight,
@@ -424,6 +434,14 @@ void DeviceManager::BackBufferResized()
     }
 }
 
+void DeviceManager::DisplayScaleChanged()
+{
+    for(auto it : m_vRenderPasses)
+    {
+        it->DisplayScaleChanged(m_DPIScaleFactorX, m_DPIScaleFactorY);
+    }
+}
+
 void DeviceManager::Animate(double elapsedTime)
 {
     for(auto it : m_vRenderPasses)
@@ -510,6 +528,13 @@ bool DeviceManager::AnimateRenderPresent()
 
     if (m_windowVisible && (m_windowIsInFocus || ShouldRenderUnfocused()))
     {
+        if (m_PrevDPIScaleFactorX != m_DPIScaleFactorX || m_PrevDPIScaleFactorY != m_DPIScaleFactorY)
+        {
+            DisplayScaleChanged();
+            m_PrevDPIScaleFactorX = m_DPIScaleFactorX;
+            m_PrevDPIScaleFactorY = m_DPIScaleFactorY;
+        }
+
         if (m_callbacks.beforeAnimate) m_callbacks.beforeAnimate(*this);
         Animate(elapsedTime);
         if (m_callbacks.afterAnimate) m_callbacks.afterAnimate(*this);
@@ -644,9 +669,12 @@ void DeviceManager::KeyboardCharInput(unsigned int unicode, int mods)
 
 void DeviceManager::MousePosUpdate(double xpos, double ypos)
 {
-    xpos /= m_DPIScaleFactorX;
-    ypos /= m_DPIScaleFactorY;
-
+    if (!m_DeviceParams.supportExplicitDisplayScaling)
+    {
+        xpos /= m_DPIScaleFactorX;
+        ypos /= m_DPIScaleFactorY;
+    }
+    
     for (auto it = m_vRenderPasses.crbegin(); it != m_vRenderPasses.crend(); it++)
     {
         bool ret = (*it)->MousePosUpdate(xpos, ypos);
