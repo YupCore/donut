@@ -38,6 +38,8 @@ struct ShadowConstants
 
     float2 shadowMapSizeTexels;
     float2 shadowMapSizeTexelsInv;
+    
+    float shadowMapAspectRatio;
 };
 
 struct LightConstants

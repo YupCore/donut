@@ -93,6 +93,8 @@ namespace donut::app
         void LookAt(dm::float3 cameraPos, dm::float3 cameraTarget, dm::float3 cameraUp = dm::float3{ 0.f, 1.f, 0.f });
         void LookTo(dm::float3 cameraPos, dm::float3 cameraDir, dm::float3 cameraUp = dm::float3{ 0.f, 1.f, 0.f });
 
+        bool stopRotation = false;
+
     private:
         std::pair<bool, dm::affine3> AnimateRoll(dm::affine3 initialRotation);
         std::pair<bool, dm::float3> AnimateTranslation(float deltaT);

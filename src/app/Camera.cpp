@@ -173,16 +173,15 @@ std::pair<bool, affine3> FirstPersonCamera::AnimateRoll(affine3 initialRotation)
 
 void FirstPersonCamera::Animate(float deltaT)
 {
-    // track mouse delta
+    // Track mouse delta
     float2 mouseMove = mousePos - mousePosPrev;
     mousePosPrev = mousePos;
 
     bool cameraDirty = false;
     affine3 cameraRotation = affine3::identity();
 
-    // handle mouse rotation first
-    // this will affect the movement vectors in the world matrix, which we use below
-    if (mouseButtonState[MouseButtons::Left] && (mouseMove.x != 0 || mouseMove.y != 0))
+    // Handle mouse rotation
+    if ((mouseMove.x != 0 || mouseMove.y != 0) && !stopRotation)
     {
         float yaw = m_RotateSpeed * mouseMove.x;
         float pitch = m_RotateSpeed * mouseMove.y;
@@ -193,12 +192,12 @@ void FirstPersonCamera::Animate(float deltaT)
         cameraDirty = true;
     }
 
-    // handle keyboard roll next
+    // Handle keyboard roll
     auto rollResult = AnimateRoll(cameraRotation);
     cameraDirty |= rollResult.first;
     cameraRotation = rollResult.second;
 
-    // handle translation
+    // Handle translation
     auto translateResult = AnimateTranslation(deltaT);
     cameraDirty |= translateResult.first;
     const float3& cameraMoveVec = translateResult.second;
@@ -214,33 +213,22 @@ void FirstPersonCamera::AnimateSmooth(float deltaT)
     const float c_DampeningRate = 7.5f;
     float dampenWeight = exp(-c_DampeningRate * deltaT);
 
-    float2 mouseMove{ 0, 0 };
-    if (mouseButtonState[MouseButtons::Left])
-    {
-        if (!isMoving)
-        {
-            isMoving = true;
-            mousePosPrev = mousePos;
-        }
+    // Calculate mouse movement directly
+    float2 mouseMove = mousePos - mousePosPrev;
 
-        mousePosDamp.x = lerp(mousePos.x, mousePosPrev.x, dampenWeight);
-        mousePosDamp.y = lerp(mousePos.y, mousePosPrev.y, dampenWeight);
+    // Smooth mouse movement
+    mousePosDamp.x = lerp(mousePos.x, mousePosPrev.x, dampenWeight);
+    mousePosDamp.y = lerp(mousePos.y, mousePosPrev.y, dampenWeight);
 
-        // track mouse delta
-        mouseMove = mousePosDamp - mousePosPrev;
-        mousePosPrev = mousePosDamp;
-    }
-    else
-    {
-        isMoving = false;
-    }
+    // Track mouse delta
+    mouseMove = mousePosDamp - mousePosPrev;
+    mousePosPrev = mousePosDamp;
 
     bool cameraDirty = false;
     affine3 cameraRotation = affine3::identity();
 
-    // handle mouse rotation first
-    // this will affect the movement vectors in the world matrix, which we use below
-    if (mouseMove.x || mouseMove.y)
+    // Handle mouse rotation
+    if ((mouseMove.x || mouseMove.y) && !stopRotation)
     {
         float yaw = m_RotateSpeed * mouseMove.x;
         float pitch = m_RotateSpeed * mouseMove.y;
@@ -251,12 +239,12 @@ void FirstPersonCamera::AnimateSmooth(float deltaT)
         cameraDirty = true;
     }
 
-    // handle keyboard roll next
+    // Handle keyboard roll
     auto rollResult = AnimateRoll(cameraRotation);
     cameraDirty |= rollResult.first;
     cameraRotation = rollResult.second;
 
-    // handle translation
+    // Handle translation
     auto translateResult = AnimateTranslation(deltaT);
     cameraDirty |= translateResult.first;
     const float3& cameraMoveVec = translateResult.second;

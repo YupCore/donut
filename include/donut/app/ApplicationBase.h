@@ -51,6 +51,7 @@ namespace donut::app
         std::shared_ptr<engine::CommonRenderPasses> m_CommonPasses;
 
         bool m_IsAsyncLoad;
+        bool m_isSplashFinished = false;
 
     public:
         ApplicationBase(DeviceManager* deviceManager);
@@ -65,6 +66,7 @@ namespace donut::app
         virtual void SceneLoaded();
 
         void SetAsynchronousLoadingEnabled(bool enabled);
+        void SetSplashScreenFinished(bool value);
         bool IsSceneLoading() const;
         bool IsSceneLoaded() const;
 

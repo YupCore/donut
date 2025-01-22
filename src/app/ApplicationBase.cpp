@@ -61,7 +61,7 @@ void ApplicationBase::Render(nvrhi::IFramebuffer* framebuffer)
     else
         m_AllTexturesFinalized = true;
 
-    if (!m_SceneLoaded || !m_AllTexturesFinalized)
+    if (!m_SceneLoaded || !m_AllTexturesFinalized || !m_isSplashFinished)
     {
         RenderSplashScreen(framebuffer);
         return;
@@ -113,6 +113,11 @@ void ApplicationBase::SetAsynchronousLoadingEnabled(bool enabled)
 bool ApplicationBase::IsSceneLoading() const
 {
     return m_SceneLoadingThread != nullptr;
+}
+
+void donut::app::ApplicationBase::SetSplashScreenFinished(bool value)
+{
+    m_isSplashFinished = value;
 }
 
 bool ApplicationBase::IsSceneLoaded() const

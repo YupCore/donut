@@ -30,8 +30,8 @@ using namespace donut::engine;
 using namespace donut::render;
 
 CascadedShadowMap::CascadedShadowMap(
-    nvrhi::IDevice* device, 
-    int resolution, 
+    nvrhi::IDevice* device,
+    int resolution,
     int numCascades,
     int numPerObjectShadows,
     nvrhi::Format format,
@@ -54,7 +54,7 @@ CascadedShadowMap::CascadedShadowMap(
     desc.keepInitialState = true;
     desc.dimension = nvrhi::TextureDimension::Texture2DArray;
     desc.arraySize = numCascades + numPerObjectShadows;
-	desc.isUAV = isUAV;
+    desc.isUAV = isUAV;
     m_ShadowMapTexture = device->createTexture(desc);
 
     nvrhi::Viewport cascadeViewport = nvrhi::Viewport(float(resolution), float(resolution));
@@ -109,7 +109,7 @@ bool CascadedShadowMap::SetupForPlanarView(const DirectionalLight& light, frustu
 
     float far = 1.f;
     float near = far / exponent;
-    
+
     daffine3 viewToWorld = light.GetNode()->GetLocalToWorldTransform();
     viewToWorld = dm::scaling(dm::double3(1.0, 1.0, -1.0)) * viewToWorld;
     affine3 worldToView = affine3(inverse(viewToWorld));
@@ -152,7 +152,7 @@ bool CascadedShadowMap::SetupForPlanarView(const DirectionalLight& light, frustu
 bool CascadedShadowMap::SetupForPlanarViewStable(const DirectionalLight& light, frustum projectionFrustum, affine3 inverseViewMatrix, float maxShadowDistance, float lightSpaceZUp, float lightSpaceZDown, float exponent, float3 preViewTranslation, int numberOfCascades)
 {
     assert(exponent > 1);
-    
+
     assert(length(projectionFrustum.planes[frustum::NEAR_PLANE].normal) > 0);
 
     if (numberOfCascades < 0)
@@ -180,7 +180,7 @@ bool CascadedShadowMap::SetupForPlanarViewStable(const DirectionalLight& light, 
 
     float far = 1.f;
     float near = far / exponent;
-    
+
     bool viewModified = false;
 
     for (int cascade = m_NumberOfCascades - 1; cascade >= 0; cascade--)
@@ -272,7 +272,7 @@ bool CascadedShadowMap::SetupForCubemapView(const DirectionalLight& light, float
 
         if (m_Cascades[cascade]->SetupDynamicDirectionalLightView(light, cascadeCenter, halfShadowBoxSize, fadeRange))
             viewModified = true;
-        
+
         far = far / exponent;
     }
 
@@ -400,7 +400,7 @@ std::shared_ptr<donut::engine::PlanarView> donut::render::CascadedShadowMap::Get
 
 void donut::render::CascadedShadowMap::SetNumberOfCascadesUnsafe(int cascades)
 {
-	m_NumberOfCascades = (cascades < 0 || cascades >= (int)m_Cascades.size()) ? (int)m_Cascades.size() : cascades;
+    m_NumberOfCascades = (cascades < 0 || cascades >= (int)m_Cascades.size()) ? (int)m_Cascades.size() : cascades;
 }
 
 void CascadedShadowMap::Clear(nvrhi::ICommandList* commandList)

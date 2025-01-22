@@ -29,8 +29,8 @@ using namespace donut::engine;
 using namespace donut::render;
 
 PlanarShadowMap::PlanarShadowMap(
-    nvrhi::IDevice* device, 
-    int resolution, 
+    nvrhi::IDevice* device,
+    int resolution,
     nvrhi::Format format)
 {
     nvrhi::TextureDesc desc;
@@ -47,7 +47,7 @@ PlanarShadowMap::PlanarShadowMap(
     desc.keepInitialState = true;
     desc.dimension = nvrhi::TextureDimension::Texture2DArray;
     m_ShadowMapTexture = device->createTexture(desc);
-    
+
     m_ShadowMapSize = float2(static_cast<float>(resolution));
     m_TextureSize = m_ShadowMapSize;
 
@@ -57,13 +57,13 @@ PlanarShadowMap::PlanarShadowMap(
 }
 
 PlanarShadowMap::PlanarShadowMap(
-    nvrhi::IDevice* device, 
-    nvrhi::ITexture* texture, 
-    uint32_t arraySlice, 
+    nvrhi::IDevice* device,
+    nvrhi::ITexture* texture,
+    uint32_t arraySlice,
     const nvrhi::Viewport& viewport)
 {
     m_ShadowMapTexture = texture;
-    
+
     const nvrhi::TextureDesc& textureDesc = m_ShadowMapTexture->getDesc();
     m_TextureSize = float2(static_cast<float>(textureDesc.width), static_cast<float>(textureDesc.height));
     m_ShadowMapSize = float2(viewport.maxX - viewport.minX, viewport.maxY - viewport.minY);
@@ -104,7 +104,7 @@ bool PlanarShadowMap::SetupWholeSceneDirectionalLightView(const DirectionalLight
 
     m_FadeRangeTexels = clamp(
         float2(fadeRangeWorld * m_ShadowMapSize) / boundsView.diagonal().xy(),
-        float2(1.f), 
+        float2(1.f),
         m_ShadowMapSize * 0.5f);
 
     return viewIsModified;
@@ -130,8 +130,8 @@ bool PlanarShadowMap::SetupDynamicDirectionalLightView(const DirectionalLight& l
 
     // Build the projection matrix
     float4x4 projection = orthoProjD3DStyle(
-        -halfShadowBoxSize.x, halfShadowBoxSize.x, 
-        -halfShadowBoxSize.y, halfShadowBoxSize.y, 
+        -halfShadowBoxSize.x, halfShadowBoxSize.x,
+        -halfShadowBoxSize.y, halfShadowBoxSize.y,
         -halfShadowBoxSize.z, halfShadowBoxSize.z);
 
     bool viewIsModified = m_View->GetViewMatrix() != worldToView || any(m_View->GetProjectionMatrix(false) != projection);
@@ -231,7 +231,7 @@ dm::box2 PlanarShadowMap::GetUVRange() const
     float2 bottomRight = float2(viewport.maxX, viewport.maxY);
 
     return box2(
-        (topLeft + 1.f) / m_TextureSize, 
+        (topLeft + 1.f) / m_TextureSize,
         (bottomRight - 1.f) / m_TextureSize);
 }
 

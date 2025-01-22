@@ -47,11 +47,6 @@ if(WIN32)
     target_compile_definitions(donut_engine PUBLIC NOMINMAX)
 endif()
 
-if (DONUT_WITH_AUDIO)
-    target_link_libraries(donut_engine Xaudio2)
-    target_compile_definitions(donut_engine PUBLIC DONUT_WITH_AUDIO)
-endif()
-
 if (DONUT_WITH_TINYEXR)
     target_link_libraries(donut_engine tinyexr)
     target_compile_definitions(donut_engine PUBLIC DONUT_WITH_TINYEXR)

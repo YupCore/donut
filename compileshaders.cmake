@@ -156,7 +156,7 @@ function(donut_compile_shaders)
            ${ignore_includes}
            -D TARGET_D3D12
            --compiler "${DXC_PATH}"
-           --shaderModel 6_5
+           --shaderModel 6_0
            ${use_api_arg})
 
         list(APPEND compilerCommand ${params_SHADERMAKE_OPTIONS})
@@ -189,7 +189,7 @@ function(donut_compile_shaders)
            -D TARGET_D3D12
            --compiler "${SLANGC_PATH}"
            --slang
-           --shaderModel 6_5)
+           --shaderModel 6_0)
 
         list(APPEND compilerCommand ${params_SHADERMAKE_OPTIONS})
         list(APPEND compilerCommand ${params_SHADERMAKE_OPTIONS_DXIL})
